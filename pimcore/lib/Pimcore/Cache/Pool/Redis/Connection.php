@@ -17,6 +17,9 @@ declare(strict_types=1);
 
 namespace Pimcore\Cache\Pool\Redis;
 
+/**
+ * @deprecated will be removed in Pimcore 5.1
+ */
 class Connection extends \Credis_Client
 {
     public function isStandalone(): bool

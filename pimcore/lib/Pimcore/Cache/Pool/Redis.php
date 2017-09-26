@@ -15,7 +15,6 @@
 namespace Pimcore\Cache\Pool;
 
 use Pimcore\Cache\Pool\Exception\CacheException;
-use Pimcore\Cache\Pool\Redis\Connection;
 
 /**
  * Redis2 item pool with tagging and LUA support.
@@ -46,7 +45,7 @@ class Redis extends AbstractCacheItemPool implements PurgeableCacheItemPoolInter
     const LUA_GC_SH1 = 'c00416b970f1aa6363b44965d4cf60ee99a6f065';
 
     /**
-     * @var Connection
+     * @var \Credis_Client
      */
     protected $redis;
 
@@ -97,11 +96,11 @@ class Redis extends AbstractCacheItemPool implements PurgeableCacheItemPoolInter
     protected $luaMaxCStack = 5000;
 
     /**
-     * @param Connection $redis
+     * @param \Credis_Client $redis
      * @param array $options
      * @param int $defaultLifetime
      */
-    public function __construct(Connection $redis, $options = [], $defaultLifetime = 0)
+    public function __construct(\Credis_Client $redis, $options = [], $defaultLifetime = 0)
     {
         parent::__construct($defaultLifetime);
 
@@ -180,13 +179,7 @@ class Redis extends AbstractCacheItemPool implements PurgeableCacheItemPoolInter
                 continue;
             }
 
-            // map response indexes from numeric indexes to their named key only
-            // if redis is running as standalone version without redis extension as
-            // the extension directly returns an array indexed by name instead of by
-            // index
-            if ($this->redis->isStandalone()) {
-                $entry = $this->mapResponseIndexes($entry, $fields);
-            }
+            $entry = $this->mapResponseIndexes($entry, $fields);
 
             // we rely on mtime always being set
             if (!isset($entry[static::FIELD_MTIME]) || !$entry[static::FIELD_MTIME]) {
@@ -216,8 +209,8 @@ class Redis extends AbstractCacheItemPool implements PurgeableCacheItemPoolInter
 
     /**
      * Maps response fields indexed by numeric index to an array with values indexed
-     * by field name. This is only used when the redis extension is not used as the extension
-     * already returns the expected format.
+     * by field name. This is needed as Credis versions before 1.9 returned inconsistent results
+     * when running with/without redis extension.
      *
      * @param array $entry
      * @param array $fields
@@ -228,7 +221,7 @@ class Redis extends AbstractCacheItemPool implements PurgeableCacheItemPoolInter
     {
         $result = [];
         foreach ($fields as $index => $fieldName) {
-            if (isset($entry[$index])) {
+            if (!isset($entry[$fieldName]) && isset($entry[$index])) {
                 $result[$fieldName] = $entry[$index];
             }
         }
