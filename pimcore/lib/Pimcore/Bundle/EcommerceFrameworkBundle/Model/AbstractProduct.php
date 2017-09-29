@@ -222,10 +222,11 @@ class AbstractProduct extends \Pimcore\Model\DataObject\Concrete implements IInd
      * @static
      *
      * @param int $id
+     * @param bool $force
      *
      * @return null|\Pimcore\Model\DataObject\AbstractObject
      */
-    public static function getById($id)
+    public static function getById($id, $force = false)
     {
         $object = \Pimcore\Model\DataObject\AbstractObject::getById($id);
 

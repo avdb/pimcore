@@ -23,12 +23,13 @@ class AbstractCategory extends \Pimcore\Model\DataObject\Concrete
      * @static
      *
      * @param int $id
+     * @param bool $force
      *
      * @return null|\Pimcore\Model\DataObject\AbstractObject
      */
-    public static function getById($id)
+    public static function getById($id, $force = false)
     {
-        $object = \Pimcore\Model\DataObject\AbstractObject::getById($id);
+        $object = \Pimcore\Model\DataObject\AbstractObject::getById($id, $force);
 
         if ($object instanceof AbstractCategory) {
             return $object;
